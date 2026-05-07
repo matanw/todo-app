@@ -8,7 +8,7 @@ REGION     := $(or $(GCP_REGION),us-central1)
 FUNCTION   := $(APP_NAME)
 ZIP_PATH   := /tmp/$(APP_NAME)-fn.zip
 
-.PHONY: init setup deploy dev destroy check-env
+.PHONY: init login setup deploy dev destroy check-env check-gcloud
 
 ## Interactive setup: asks for Google Client ID and writes .env
 init:
@@ -28,11 +28,39 @@ init:
 	echo "" && echo "✓ .env created. Run: make setup"
 
 check-env:
-	@test -n "$(PROJECT)"        || (echo "ERROR: GCP_PROJECT_ID not set in .env" && exit 1)
-	@test -n "$(GOOGLE_CLIENT_ID)" || (echo "ERROR: GOOGLE_CLIENT_ID not set in .env" && exit 1)
+	@test -n "$(PROJECT)"          || (echo "" && echo "ERROR: GCP_PROJECT_ID not set — run: make init" && echo "" && exit 1)
+	@test -n "$(GOOGLE_CLIENT_ID)" || (echo "" && echo "ERROR: GOOGLE_CLIENT_ID not set — run: make init" && echo "" && exit 1)
+
+check-gcloud:
+	@command -v gcloud >/dev/null 2>&1 || { \
+		echo ""; \
+		echo "ERROR: gcloud is not installed."; \
+		echo "  Install it: https://cloud.google.com/sdk/docs/install"; \
+		echo "  Or via brew:  brew install --cask google-cloud-sdk"; \
+		echo ""; \
+		exit 1; \
+	}
+	@gcloud auth application-default print-access-token >/dev/null 2>&1 || { \
+		echo ""; \
+		echo "ERROR: GCP credentials not found. Run these two commands:"; \
+		echo ""; \
+		echo "  gcloud auth login"; \
+		echo "  gcloud auth application-default login"; \
+		echo ""; \
+		echo "Then re-run: make setup"; \
+		echo ""; \
+		exit 1; \
+	}
+
+## Authenticate with GCP (run once per machine)
+login:
+	gcloud auth login
+	gcloud auth application-default login
+	@echo ""
+	@echo "✓ Authenticated. Run: make setup"
 
 ## Provision GCP infrastructure (run once per app)
-setup: check-env
+setup: check-env check-gcloud
 	@echo "▶ Setting up [$(APP_NAME)] in project [$(PROJECT)]..."
 	cd terraform && terraform init -upgrade
 	cd terraform && terraform apply \
