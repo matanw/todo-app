@@ -10,9 +10,22 @@ ZIP_PATH   := /tmp/$(APP_NAME)-fn.zip
 
 .PHONY: init setup deploy dev destroy check-env
 
-## Copy .env.example → .env (run this first)
+## Interactive setup: asks for Google Client ID and writes .env
 init:
-	@test -f .env && echo ".env already exists — edit it directly" || (cp .env.example .env && echo "✓ .env created — open it and fill in GOOGLE_CLIENT_ID")
+	@if [ -f .env ]; then echo ".env already exists — delete it and re-run to reset"; exit 0; fi
+	@echo ""
+	@echo "  Open this URL in your browser:"
+	@echo "  https://console.cloud.google.com/apis/credentials?project=matan-app-zoo"
+	@echo ""
+	@echo "  → Create Credentials → OAuth 2.0 Client ID"
+	@echo "  → Type: Web application"
+	@echo "  → Authorised JavaScript origins: http://localhost:19006"
+	@echo "  → Authorised redirect URIs:      http://localhost:19006"
+	@echo "                                   https://auth.expo.io/@matanw/$(APP_NAME)"
+	@echo ""
+	@printf "Paste your Client ID: " && read CLIENT_ID && \
+	printf 'GCP_PROJECT_ID=matan-app-zoo\nGCP_REGION=us-central1\nGOOGLE_CLIENT_ID=%s\nALLOWED_USERS=matanwis@gmail.com\nALLOW_ALL=false\nALLOW_DEVICE_AUTH=false\n' "$$CLIENT_ID" > .env && \
+	echo "" && echo "✓ .env created. Run: make setup"
 
 check-env:
 	@test -n "$(PROJECT)"        || (echo "ERROR: GCP_PROJECT_ID not set in .env" && exit 1)
