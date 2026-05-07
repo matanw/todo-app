@@ -6,7 +6,6 @@ APP_NAME ?= $(shell basename $(CURDIR))
 PROJECT    := $(GCP_PROJECT_ID)
 REGION     := $(or $(GCP_REGION),us-central1)
 FUNCTION   := $(APP_NAME)
-ZIP_PATH   := /tmp/$(APP_NAME)-fn.zip
 
 .PHONY: init login setup deploy dev destroy check-env check-gcloud
 
@@ -76,12 +75,11 @@ deploy: check-env
 	$(eval BUCKET := $(shell cd terraform && terraform output -raw bucket_name 2>/dev/null))
 	$(eval SA     := $(shell cd terraform && terraform output -raw sa_email     2>/dev/null))
 	@test -n "$(BUCKET)" || (echo "ERROR: Run 'make setup' first" && exit 1)
-	cd backend && zip -r $(ZIP_PATH) . -x "*.pyc" -x "__pycache__/*" -x "*.zip"
 	gcloud functions deploy $(FUNCTION) \
 		--gen2 \
 		--runtime=python312 \
 		--region=$(REGION) \
-		--source=$(ZIP_PATH) \
+		--source=backend/ \
 		--entry-point=handler \
 		--trigger-http \
 		--allow-unauthenticated \
