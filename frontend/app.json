@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name":        "Todo",
+    "slug":        "todo-app",
+    "version":     "1.0.0",
+    "orientation": "portrait",
+    "platforms":   ["ios", "android", "web"],
+    "scheme":      "todo-app",
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "apiUrl":  "",
+      "appName": "todo-app"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+.env
+.env.local
+frontend/.env.local
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+__pycache__/
+*.pyc
+node_modules/
+.expo/
+dist/
+/tmp/*.zip
