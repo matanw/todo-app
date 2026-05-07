@@ -1,17 +1,18 @@
 APP_NAME ?= $(shell basename $(CURDIR))
 
-# Load .env — fail loudly if missing
-ifeq (,$(wildcard .env))
-$(error .env not found. Run: cp .env.example .env and fill in your values)
-endif
-include .env
+# Load .env if it exists (init target creates it)
+-include .env
 
 PROJECT    := $(GCP_PROJECT_ID)
 REGION     := $(or $(GCP_REGION),us-central1)
 FUNCTION   := $(APP_NAME)
 ZIP_PATH   := /tmp/$(APP_NAME)-fn.zip
 
-.PHONY: setup deploy dev destroy check-env
+.PHONY: init setup deploy dev destroy check-env
+
+## Copy .env.example → .env (run this first)
+init:
+	@test -f .env && echo ".env already exists — edit it directly" || (cp .env.example .env && echo "✓ .env created — open it and fill in GOOGLE_CLIENT_ID")
 
 check-env:
 	@test -n "$(PROJECT)"        || (echo "ERROR: GCP_PROJECT_ID not set in .env" && exit 1)
