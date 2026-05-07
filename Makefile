@@ -96,7 +96,7 @@ dev: check-env
 	$(eval FURL := $(shell cd terraform && terraform output -raw function_url 2>/dev/null || echo "http://localhost:8080"))
 	@printf 'EXPO_PUBLIC_API_URL=%s\nEXPO_PUBLIC_APP_NAME=%s\nEXPO_PUBLIC_GOOGLE_CLIENT_ID=%s\n' \
 		"$(FURL)" "$(APP_NAME)" "$(GOOGLE_CLIENT_ID)" > frontend/.env.local
-	cd frontend && npm install --silent && npx expo start --web
+	cd frontend && npm install --silent && ulimit -n 65536 && npx expo start --web --port 19006
 
 ## Tear down ALL infrastructure for this app (irreversible)
 destroy: check-env
